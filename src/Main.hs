@@ -4,6 +4,7 @@ import Controller
 import Model
 import View
 import Player
+import Bullet
 
 import Graphics.Gloss.Interface.IO.Game
 
@@ -14,4 +15,4 @@ main = playIO (InWindow "Counter" (1200, 800) (0, 0)) -- Or FullScreen
               initialState     -- Initial state
               view             -- View function
               input            -- Event function
-              step             -- Step function                            
+              step             -- Step function                             

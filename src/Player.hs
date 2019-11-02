@@ -6,5 +6,5 @@ type Position = (Float, Float)
 
 type Health = Int
 
-type Speed = Int
+type Speed = Float
 

@@ -3,13 +3,16 @@
 module Model where
 
 import Player
+import Bullet
 
 data InfoToShow = ShowNothing
-                | ShowGameState Player
+                | ShowGameState Player [Bullet]
                 | ShowPause
+                | ShowBullets [Bullet]
 
 nOSECSBETWEENCYCLES :: Float
-nOSECSBETWEENCYCLES = 5
+nOSECSBETWEENCYCLES = 2
+--WAS EERST 5, NU 2 OM TE TESTEN.
 
 data GameState = GameState {
                    infoToShow  :: InfoToShow
