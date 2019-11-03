@@ -9,9 +9,11 @@ data InfoToShow = ShowNothing
                 | ShowGameState Player [Bullet]
                 | ShowPause
                 | ShowBullets [Bullet]
+                | ShowTest Player [Bullet]
+                | ShowTriangle Player
 
 nOSECSBETWEENCYCLES :: Float
-nOSECSBETWEENCYCLES = 2
+nOSECSBETWEENCYCLES = 0.25
 --WAS EERST 5, NU 2 OM TE TESTEN.
 
 data GameState = GameState {

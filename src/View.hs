@@ -17,5 +17,17 @@ viewPure gstate = case infoToShow gstate of
     pictures [translate x y (color red (ThickCircle 20 40))]
   ShowPause -> color red (text "pauze")
   ShowBullets bs@[Bullet{speedB = s, positionB = (x,y), colourB = c}] -> translate x y (color c (ThickCircle 5 10))
+  ShowTest Player{speed = s, health = h, position = (x,y)} bs -> 
+    pictures [translate x y (color red (ThickCircle 20 40)), bulletPics bs]
+  ShowTriangle Player{speed = s, health = h, position = (x,y)} -> 
+    color azure $ Polygon ([(-8, 0), (-15, 10), (15, 0), (-15,-10), (-8, 0)])
+    
   --ShowANumber n -> color blue (text (show n))
   --ShowAChar   c -> color red (text [c])
+
+bulletPics :: [Bullet] -> Picture
+bulletPics [] = pictures []
+bulletPics bs = pictures [bulletToPic b | b <- bs]
+
+bulletToPic :: Bullet -> Picture
+bulletToPic Bullet{speedB = s, positionB = (x,y), colourB = c} = translate x y (color c (ThickCircle 5 10))

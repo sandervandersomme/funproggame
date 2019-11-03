@@ -29,7 +29,14 @@ newGstate GameState{infoToShow = ShowGameState Player{speed=s, health=h, positio
 newGstate GameState{infoToShow = ShowBullets [Bullet{speedB=s,positionB=(x,y),colourB=c}]}
    = GameState (ShowBullets [b]) 0
      where b = (Bullet s (x+s, y) c)
+newGstate GameState{infoToShow = ShowTest speler bs}
+   = GameState (ShowTest speler (updateBullets bs)) 0
 newGstate gs = gs
+
+updateBullets :: [Bullet] -> [Bullet]
+updateBullets [] = []
+updateBullets (Bullet{speedB=s,positionB=(x,y),colourB=c}:bs) = 
+  (Bullet s (x+s,y) c) : updateBullets bs
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
@@ -44,7 +51,9 @@ inputKey (EventKey (Char c) pr _ _) gstate
    -- pr == Down zodat hij alleen beweegt als de key ingedrukt wordt, en niet ook als de key wordt losgelaten
    | c == 'w' && pr == Down = vgsW gstate
    | c == 's' && pr == Down = vgsS gstate
-   | c == 'b' = gstate { infoToShow = ShowBullets [(Bullet 10 (-350, 0) red)]}
+   | c == 'b' && pr == Down = gstate { infoToShow = ShowBullets [(Bullet 10 (-350, 0) red)]}
+   | c == 'z' && pr == Down = vgsTest gstate
+   | c == 'q' && pr == Down = gstate { infoToShow = ShowTriangle (Player 0 3 (-350, 0))}
    | otherwise = gstate
 --   = gstate { infoToShow = ShowPause }
 inputKey _ gstate = gstate -- Otherwise keep the same
@@ -53,9 +62,20 @@ vgsW :: GameState -> GameState
 -- min 400 y+10 zodat hij niet buiten het veld gaat
 vgsW GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
    = GameState (ShowGameState (Player s h (-400, (min 400 y+10))) bs) tt
+vgsW GameState{infoToShow = ShowTest Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
+   = GameState (ShowTest (Player s h (-400, (min 400 y+10))) bs) tt
 vgsW gs = gs
 
 vgsS :: GameState -> GameState
 vgsS GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
    = GameState (ShowGameState (Player s h (-400, (max (-400) y-10))) bs) tt
+vgsS GameState{infoToShow = ShowTest Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
+   = GameState (ShowTest (Player s h (-400, (max (-400) y-10))) bs) tt
 vgsS gs = gs
+
+vgsTest :: GameState -> GameState
+vgsTest GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
+   = GameState (ShowTest (Player s h (x, y)) [(Bullet 5 (x + 10, y) blue)]) tt
+vgsTest GameState{infoToShow = ShowTest Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
+   = GameState (ShowTest (Player s h (x, y)) (bs ++ [(Bullet 5 (x + 10, y) blue)])) tt
+vgsTest gs = gs
