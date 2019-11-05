@@ -4,13 +4,16 @@ module Model where
 
 import Player
 import Bullet
+import Enemy
 
 data InfoToShow = ShowNothing
                 | ShowGameState Player [Bullet]
                 | ShowPause
                 | ShowBullets [Bullet]
-                | ShowTest Player [Bullet]
+                | ShowTest Player [Bullet] [Enemy]
                 | ShowTriangle Player
+                --         W of S _    Bullets Player _ Bullets enemies Score
+                | ShowFinal Char Player [Bullet] [Enemy] [Bullet] Int
 
 nOSECSBETWEENCYCLES :: Float
 nOSECSBETWEENCYCLES = 0.25

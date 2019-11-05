@@ -5,6 +5,7 @@ import Model
 import View
 import Player
 import Bullet
+import Enemy
 
 import Graphics.Gloss.Interface.IO.Game
 
