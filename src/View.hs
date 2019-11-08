@@ -25,8 +25,7 @@ viewPure gstate = case infoToShow gstate of
     color azure $ Polygon ([(0,0), (-40, -15), (-32, 0), (-40, 15), (0,0)])
 
   ShowFinal _ Player{speed=s, health=h, position=(x,y)} bs es ebs score ->
-    pictures [translate x y (spelerPic), bulletPics bs, enemyPics es, scoreText score, 
-      translate (-400) 0 (color red $ Polygon ([(0,0), (0,10), (20,10), (20,-10), (0,-10), (0,0)])) ]
+    pictures [translate x y (spelerPic), bulletPics bs, enemyPics es, scoreText score, ]
     
   --ShowANumber n -> color blue (text (show n))
   --ShowAChar   c -> color red (text [c])
