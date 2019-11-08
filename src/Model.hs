@@ -9,14 +9,13 @@ import Enemy
 data InfoToShow = ShowNothing
                 | ShowGameState Player [Bullet]
                 | ShowPause
-                | ShowBullets [Bullet]
                 | ShowTest Player [Bullet] [Enemy]
                 | ShowTriangle Player
                 --         W of S _    Bullets Player _ Bullets enemies Score
-                | ShowFinal Char Player [Bullet] [Enemy] [Bullet] Int
+                | ShowFinal Char Player [Bullet] [Enemy] [Bullet] Float
 
 nOSECSBETWEENCYCLES :: Float
-nOSECSBETWEENCYCLES = 0.25
+nOSECSBETWEENCYCLES = 0.025
 --WAS EERST 5, NU 2 OM TE TESTEN.
 
 data GameState = GameState {
