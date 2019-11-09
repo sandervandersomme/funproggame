@@ -38,40 +38,52 @@ step secs gstate
 --Zorgt ervoor dat de bullets bewegen, dat de enemies bewegen.
 --En bij ShowFinal zorgt het ervoor dat ook de speler blijft bewegen als w of s ingedrukt is.
 newGsT :: Float -> GameState -> GameState
-newGsT _ GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = _}
-   = GameState (ShowGameState (Player s h (x, y)) bs) 0
+newGsT _ GameState{infoToShow = ShowGameState sp bs, elapsedTime = _}
+   = GameState (ShowGameState sp bs) 0
 newGsT randN GameState{infoToShow = ShowTest speler bs es}
-   | randN <= 0.1 = GameState (ShowTest speler (updateBullets bs) ((updateEnemies es) ++ 
+   | randN <= eSpPr = GameState (ShowTest speler (updateBullets bs) ((updateEnemies es) ++ 
      [(Enemy 3 (600, (berekenRandomY randN)) 1 (e1H,e1W))]) ) 0
    | otherwise = GameState (ShowTest speler (updateBullets bs) (updateEnemies es)) 0
-newGsT randN GameState{infoToShow = ShowFinal 'w' Player{speed=s, health=h, position=(x, y)} bs es ebs sc}
-   | randN <= 0.1 = GameState (ShowFinal 'w' Player{speed=s,health=h,position=(x, min 400 (y+s))} 
+{-
+newGsT randN GameState{infoToShow = ShowFinal 'w' Player{speed=s, health=h, position=(x, y),
+  bullCou=bc, immuCou=ic } bs es ebs sc}
+   | randN <= 0.1 = GameState (ShowFinal 'w' Player{speed=s,health=h,position=(x, min 400 (y+s)), 
+     bullCou=bc, immuCou=ic } 
      (updateBullets bs) ((updateEnemies es) ++ [(Enemy 3 (600, (berekenRandomY randN)) 1 (e1H,e1W))]) ebs sc) 0
-   | otherwise = GameState (ShowFinal 'w' Player{speed=s,health=h,position=(x, min 400 (y+s))} (updateBullets bs) 
-     (updateEnemies es) ebs sc) 0
-newGsT randN GameState{infoToShow = ShowFinal 's' Player{speed=s, health=h, position=(x, y)} bs es ebs sc}
-   | randN <= 0.1 = GameState (ShowFinal 's' Player{speed=s,health=h,position=(x, max (-400) y-s)} 
+   | otherwise = GameState (ShowFinal 'w' Player{speed=s,health=h,position=(x, min 400 (y+s)),bullCou=bc,
+     immuCou=ic} (updateBullets bs) (updateEnemies es) ebs sc) 0
+newGsT randN GameState{infoToShow = ShowFinal 's' Player{speed=s, health=h, position=(x, y), 
+  bullCou=bc, immuCou=ic} bs es ebs sc}
+   | randN <= 0.1 = GameState (ShowFinal 's' Player{speed=s,health=h,position=(x, max (-400) y-s),
+     bullCou=bc, immuCou=ic} 
      (updateBullets bs) ((updateEnemies es) ++ [(Enemy 3 (600, (berekenRandomY randN)) 1 (e1H,e1W))]) ebs sc) 0
-   | otherwise = GameState (ShowFinal 's' Player{speed=s,health=h,position=(x, max (-400) y-s)} (updateBullets bs) 
-     (updateEnemies es) ebs sc) 0
-newGsT randN GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y)} bs es ebs sc}
-   | randN <= 0.1 = GameState (ShowFinal c Player{speed=s,health=h,position=(x, y)} (updateBullets bs) 
-     ((updateEnemies es) ++ [(Enemy 3 (600, (berekenRandomY randN)) 1 (e1H,e1W))]) ebs sc) 0
-   | otherwise = GameState (ShowFinal c Player{speed=s,health=h,position=(x, y)} (updateBullets bs) 
-     (updateEnemies es) ebs sc) 0
+   | otherwise = GameState (ShowFinal 's' Player{speed=s,health=h,position=(x, max (-400) y-s), 
+     bullCou=bc, immuCou=ic} (updateBullets bs) (updateEnemies es) ebs sc) 0
+newGsT randN GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y), 
+  bullCou=bc, immuCou=ic} bs es ebs sc}
+   | randN <= 0.1 = GameState (ShowFinal c Player{speed=s,health=h,position=(x, y),bullCou=bc,immuCou=ic} 
+     (updateBullets bs) ((updateEnemies es) ++ [(Enemy 3 (600, (berekenRandomY randN)) 1 (e1H,e1W))]) ebs sc) 0
+   | otherwise = GameState (ShowFinal c Player{speed=s,health=h,position=(x, y),bullCou=bc,immuCou=ic} 
+     (updateBullets bs) (updateEnemies es) ebs sc) 0
+-}
+newGsT randN GameState{infoToShow = ShowFinal c sp bs es ebs sc}
+  | randN <= eSpPr = GameState (ShowFinal c (updatePlayer c sp) (updateBullets bs) 
+    ((updateEnemies es) ++ [(Enemy 3 (600, (berekenRandomY randN)) 1 (e1H,e1W))]) ebs sc) 0
+  | otherwise      = GameState (ShowFinal c (updatePlayer c sp) (updateBullets bs) (updateEnemies es) ebs sc) 0
 newGsT _ gs = gs
 
 --random getal zorgt voor spreiding over y as. Dus 10% kans op nieuwe enemy betekent:
 --(hoogte display/2 - hoogte enemy/2) / 0.05 = x
 --Momenteel is dat 800/2 - 20/2 = 390 / 0.05 = 7800
 berekenRandomY :: Float -> Float
-berekenRandomY ran = 7800 * (ran - 0.05)
+berekenRandomY ran = (((fromIntegral screenHeight)/2 - e1H2) / (eSpPr/2)) * (ran - (eSpPr/2))
 
 --collisionChecker moet kijken naar speler & enemy, speler & enemy bullets, speler bullets & enemies
 collisionChecker :: GameState -> GameState
-collisionChecker gs@GameState{infoToShow = ShowFinal c sp@Player{speed=s,health=h,position=(x,y)} 
-  bs es ebs sc, elapsedTime = tt} 
-    | fst check1 == True = GameState (ShowFinal c sp bs (snd check1) ebs (sc-10) ) tt
+collisionChecker gs@GameState{infoToShow = ShowFinal c sp@Player{immuCou=ic} bs es ebs sc, elapsedTime = tt} 
+    | fst check1 == True && ic == 0 = GameState (ShowFinal c (updatePlayer 'h' sp) 
+      bs (snd check1) ebs (sc-10) ) tt
+    | fst check1 == True = GameState (ShowFinal c sp bs (snd check1) ebs sc) tt
     | otherwise = gs
        where check1 = collisionCheckEs es sp []
 collisionChecker gs = gs
@@ -145,6 +157,17 @@ updateEnemies (Enemy{speedE=s,positionE=(x,y),healthE=h,sizeE=(eH,eW)}:es)
   | (x + eW) > -600 = (Enemy s (x-s,y) h (eH,eW)) : updateEnemies es
   | otherwise       = updateEnemies es
 
+--Update de speler als w/s ingedrukt is, maar ook als de speler geraakt is.
+updatePlayer :: Char -> Player -> Player
+updatePlayer 'w' Player{speed=s, health=h, position=(x,y), bullCou=bc, immuCou=ic} 
+  = Player s h (x, min 400 (y+s)) (max 0 (bc-1)) (max 0 (ic-1))
+updatePlayer 's' Player{speed=s, health=h, position=(x,y), bullCou=bc, immuCou=ic}
+  = Player s h (x, max (-400) (y-s)) (max 0 (bc-1)) (max 0 (ic-1))
+updatePlayer 'h' Player{speed=s, health=h, position=p, bullCou=bc, immuCou=ic}
+  = Player s h p bc immunityCounter
+updatePlayer _ Player{speed=s, health=h, position=(x,y), bullCou=bc, immuCou=ic}
+  = Player s h (x, y) (max 0 (bc-1)) (max 0 (ic-1))
+
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
 input e gstate = return (inputKey e gstate)
@@ -153,7 +176,7 @@ inputKey :: Event -> GameState -> GameState
 inputKey (EventKey (Char c) pr _ _) gstate
   -- If the user presses a character key, show that one
    | c == 'n' =
-       GameState (ShowGameState (Player 0 3 (-350, 0)) []) 0
+       GameState (ShowGameState (Player 0 3 (-350, 0) 0 0) []) 0
    | c == 'p' = gstate { infoToShow = ShowPause }
    -- pr == Down zodat hij alleen beweegt als de key ingedrukt wordt, en niet ook als de key wordt losgelaten
    | c == 'w' && pr == Up   = verwijderC c gstate
@@ -161,8 +184,8 @@ inputKey (EventKey (Char c) pr _ _) gstate
    | c == 's' && pr == Up   = verwijderC c gstate
    | c == 's' && pr == Down = vgsS gstate
    | c == 'z' && pr == Down = vgsTest gstate
-   | c == 'q' && pr == Down = gstate { infoToShow = ShowTriangle (Player 0 3 (-350, 0))}
-   | c == 'u' && pr == Down = gstate { infoToShow = ShowFinal '_' (Player 5 3 (spX, spY)) [] [] [] 0}
+   | c == 'q' && pr == Down = gstate { infoToShow = ShowTriangle (Player 0 3 (-350, 0) 0 0)}
+   | c == 'u' && pr == Down = gstate { infoToShow = ShowFinal '_' (Player 5 3 (spX, spY) 0 0) [] [] [] 0}
    | otherwise = gstate
 --   = gstate { infoToShow = ShowPause }
 inputKey _ gstate = gstate -- Otherwise keep the same
@@ -182,27 +205,33 @@ verwijderC _ gs = gs
 --De speler gaat omhoog. Bij ShowFinal gaat hij niet omhoog als s nog ingedrukt is
 vgsW :: GameState -> GameState
 -- min 400 y+10 zodat hij niet buiten het veld gaat
-vgsW GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
-   = GameState (ShowGameState (Player s h (-400, (min 400 y+10))) bs) tt
-vgsW GameState{infoToShow = ShowTest Player{speed=s, health=h, position=(x, y)} bs es, elapsedTime = tt}
-   = GameState (ShowTest (Player s h (-400, (min 400 y+10))) bs es) tt
-vgsW GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y)} bs es ebs sc, elapsedTime = tt}
-   | c == '_'  = GameState (ShowFinal 'w' (Player s h (x, y)) bs es ebs sc) tt
-   | c == 's'  = GameState (ShowFinal '+' (Player s h (x, y)) bs es ebs sc) tt
-   | otherwise = GameState (ShowFinal '_' (Player s h (x, y)) bs es ebs sc) tt
+vgsW GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y), bullCou=bc, immuCou=ic}
+   bs, elapsedTime = tt}
+   = GameState (ShowGameState (Player s h (-400, (min 400 y+10)) bc ic) bs) tt
+vgsW GameState{infoToShow = ShowTest  Player{speed=s, health=h, position=(x, y), bullCou=bc, immuCou=ic} 
+  bs es, elapsedTime = tt}
+   = GameState (ShowTest (Player s h (-400, (min 400 y+10)) bc ic) bs es) tt
+vgsW GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y), bullCou=bc, immuCou=ic} 
+  bs es ebs sc, elapsedTime = tt}
+   | c == '_'  = GameState (ShowFinal 'w' (Player s h (x, y) bc ic) bs es ebs sc) tt
+   | c == 's'  = GameState (ShowFinal '+' (Player s h (x, y) bc ic) bs es ebs sc) tt
+   | otherwise = GameState (ShowFinal '_' (Player s h (x, y) bc ic) bs es ebs sc) tt
 vgsW gs = gs
 
 --Als de s-key wordt ingedrukt
 --De speler gaat omlaag. Bij ShowFinal gaat hij niet omlaag als w nog ingedrukt is
 vgsS :: GameState -> GameState
-vgsS GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y)} bs, elapsedTime = tt}
-   = GameState (ShowGameState (Player s h (-400, (max (-400) y-10))) bs) tt
-vgsS GameState{infoToShow = ShowTest Player{speed=s, health=h, position=(x, y)} bs es, elapsedTime = tt}
-   = GameState (ShowTest (Player s h (-400, (max (-400) y-10))) bs es) tt
-vgsS GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y)} bs es ebs sc, elapsedTime = tt}
-   | c == '_'  = GameState (ShowFinal 's' (Player s h (x, y)) bs es ebs sc) tt
-   | c == 'w'  = GameState (ShowFinal '+' (Player s h (x, y)) bs es ebs sc) tt
-   | otherwise = GameState (ShowFinal '_' (Player s h (x, y)) bs es ebs sc) tt
+vgsS GameState{infoToShow = ShowGameState Player{speed=s, health=h, position=(x, y), 
+  bullCou=bc, immuCou=ic} bs, elapsedTime = tt}
+   = GameState (ShowGameState (Player s h (-400, (max (-400) y-10)) bc ic) bs) tt
+vgsS GameState{infoToShow = ShowTest Player{speed=s, health=h, position=(x, y), 
+  bullCou=bc, immuCou=ic} bs es, elapsedTime = tt}
+   = GameState (ShowTest (Player s h (-400, (max (-400) y-10)) bc ic) bs es) tt
+vgsS GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y), 
+  bullCou=bc, immuCou=ic} bs es ebs sc, elapsedTime = tt}
+   | c == '_'  = GameState (ShowFinal 's' (Player s h (x, y) bc ic) bs es ebs sc) tt
+   | c == 'w'  = GameState (ShowFinal '+' (Player s h (x, y) bc ic) bs es ebs sc) tt
+   | otherwise = GameState (ShowFinal '_' (Player s h (x, y) bc ic) bs es ebs sc) tt
 vgsS gs = gs
 
 --Als een kogel wordt afgevuurd (door de speler)
@@ -211,8 +240,12 @@ vgsTest :: GameState -> GameState
 vgsTest GameState{infoToShow = ShowGameState sp@Player{speed=s, position=(x, y)} bs, elapsedTime = tt}
    -- = GameState (ShowTest (Player s h (x, y)) [(Bullet 5 (x + 10, y) blue)] []) tt
    = GameState (ShowTest sp [(Bullet 5 (x + 10, y) blue)] []) tt
-vgsTest GameState{infoToShow = ShowTest Player{speed=s, health=h, position=(x, y)} bs es, elapsedTime = tt}
-   = GameState (ShowTest (Player s h (x, y)) (bs ++ [(Bullet 5 (x + 10, y) blue)]) es) tt
-vgsTest GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y)} bs es ebs sc, elapsedTime = tt}
-   = GameState (ShowFinal c (Player s h (x, y)) (bs ++ [(Bullet 10 (x + 10, y) blue)]) es ebs sc) tt
+vgsTest GameState{infoToShow = ShowTest sp@Player{speed=s, position=(x, y)} bs es, elapsedTime = tt}
+   = GameState (ShowTest sp (bs ++ [(Bullet 5 (x + 10, y) blue)]) es) tt
+vgsTest gs@GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y), 
+  bullCou=bc, immuCou=ic} bs es ebs sc, elapsedTime = tt}
+    -- = GameState (ShowFinal c (Player s h (x, y) bulletCounter ic) (bs ++ [(Bullet 10 (x + 10, y) blue)]) es ebs sc) tt
+    | bc < 1    = GameState (ShowFinal c (Player s h (x, y) bulletCounter ic) 
+      (bs ++ [(Bullet 10 (x + 10, y) blue)]) es ebs sc) tt
+    | otherwise = gs
 vgsTest gs = gs

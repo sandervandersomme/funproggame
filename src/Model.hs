@@ -13,10 +13,8 @@ data InfoToShow = ShowNothing
                 | ShowTriangle Player
                 --         W of S _    Bullets Player _ Bullets enemies Score
                 | ShowFinal Char Player [Bullet] [Enemy] [Bullet] Float
+                | ShowMenu 
 
-nOSECSBETWEENCYCLES :: Float
-nOSECSBETWEENCYCLES = 0.025
---WAS EERST 5, NU 2 OM TE TESTEN.
 
 data GameState = GameState {
                    infoToShow  :: InfoToShow

@@ -20,22 +20,35 @@ viewPure gstate = case infoToShow gstate of
   ShowPause -> color red (text "pauze")
   ShowTest Player{speed = s, health = h, position = (x,y)} bs es -> 
     pictures [translate x y (color red (ThickCircle 20 40)), bulletPics bs, enemyPics es]
-  ShowTriangle Player{speed = s, health = h, position = (x,y)} -> 
-    --color azure $ Polygon ([(-8, 0), (-15, 10), (15, 0), (-15,-10), (-8, 0)])
+  ShowTriangle Player{speed = s, position = (x,y)} -> 
     color azure $ Polygon ([(0,0), (-40, -15), (-32, 0), (-40, 15), (0,0)])
 
-  ShowFinal _ Player{speed=s, health=h, position=(x,y)} bs es ebs score ->
-    pictures [translate x y (spelerPic), bulletPics bs, enemyPics es, scoreText score, ]
+  ShowFinal _ sp@Player{speed=s, position=(x,y)} bs es ebs score ->
+    pictures [translate x y (spelerPic sp), bulletPics bs, enemyPics es, scoreText score ]
+  
+  ShowMenu -> pictures [(textToPicture 0.5 0.5 (-400) 300 red "1 vs. 1 (1)"), 
+    (textToPicture 0.5 0.5 (-400) 150 red "Normal mode (u)"), 
+    (textToPicture 0.5 0.5 (-400) 300 red "Level select (l)"),
+    (textToPicture 0.5 0.5 (-400) 0 red "Battle against time (t)"),
+    (textToPicture 0.5 0.5 (-400) (-150) red "Highscores") ]
     
   --ShowANumber n -> color blue (text (show n))
   --ShowAChar   c -> color red (text [c])
 
 --Als deze wordt aangepast moet collision ook aangepast worden
-spelerPic :: Picture
-spelerPic = color azure $ Polygon ([(0,0), (-spW, -spH2), (-64, 0), (-spW, spH2), (0,0)])
+--spelerPic :: Picture
+--spelerPic = color azure $ Polygon ([(0,0), (-spW, -spH2), (-64, 0), (-spW, spH2), (0,0)])
+spelerPic :: Player -> Picture
+spelerPic Player{immuCou = ic} 
+  | ic == 0   = color azure $ Polygon ([(0,0), (-spW, -spH2), (-64, 0), (-spW, spH2), (0,0)])
+  | otherwise = color (greyN 0.5) $ Polygon ([(0,0), (-spW, -spH2), (-64, 0), (-spW, spH2), (0,0)])
 
 scoreText :: Float -> Picture
-scoreText x = scale 0.5 0.5 $ translate 0 (-100) $ color red (text (show x))
+-- scoreText x = scale 0.5 0.5 $ translate 0 (-100) $ color red (text (show x))
+scoreText x = textToPicture 0.5 0.5 0 (-100) red (show x)
+
+textToPicture :: Float -> Float -> Float -> Float -> Color -> String -> Picture
+textToPicture s1 s2 t1 t2 colour tekst = scale s1 s2 $ translate t1 t2 $ color colour $ text tekst
 
 bulletPics :: [Bullet] -> Picture
 bulletPics [] = pictures []
