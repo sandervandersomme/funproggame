@@ -8,7 +8,7 @@ import Enemy
 import Level
 import Constanten
 
-data InfoToShow = ShowNothing
+data InfoToShow = ShowNothing String
                 | ShowPause InfoToShow Float
                 | ShowFinal Char Player [Bullet] [Enemy] Float
                 | ShowMenu Char Int

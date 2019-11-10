@@ -15,9 +15,9 @@ view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure gstate = case infoToShow gstate of
-  ShowNothing -> color red (text "start")
+  ShowNothing _ -> (text "nothing")
   ShowPause _ _ -> color red (text "pauze")
-  ShowFinal _ sp@Player{speed=s, position=(x,y)} bs es ebs score ->
+  ShowFinal _ sp@Player{speed=s, position=(x,y)} bs es score ->
     pictures [(spelerToPic azure sp), bulletPics bs, enemyPics es, scoreText score ]
   ShowMenu c i -> menuPic i
   Show1v1 _ sp1 _ sp2@Player{position=(x,y)} bs bs2 es es2 -> pictures [bulletPics bs, bulletPics bs2, enemyPics es, enemyPics es2,
@@ -104,13 +104,12 @@ levelToPic Level{idL=i} = textToPicture 0.5 0.5 100 400 red (show i)
 
 menuPic :: Int -> Picture
 menuPic 1 = standaardMenu
-menuPic 2 = pictures [(textToPicture 0.5 0.5 (-1000) 400 red "Level Select, press 1, 2 or 3"), 
+menuPic 2 = pictures [(textToPicture 0.5 0.5 (-1000) 400 red "Level Select, press 1"), 
   (textToPicture 0.5 0.5 (-500) 200 red "press l to go back")]
 
 standaardMenu :: Picture
 standaardMenu = pictures [(textToPicture 0.5 0.5 (-400) 400 red "1 vs. 1 (1)"), 
     (textToPicture 0.5 0.5 (-400) 200 red "Normal mode (u)"), 
     (textToPicture 0.5 0.5 (-400) 0 red "Level select (l)"),
-    (textToPicture 0.5 0.5 (-400) (-200) red "Battle against time (t)"),
-    (textToPicture 0.5 0.5 (-400) (-400) red "Highscores (h)") ]
+    (textToPicture 0.5 0.5 (-400) (-200) red "Highscores (h)") ]
 

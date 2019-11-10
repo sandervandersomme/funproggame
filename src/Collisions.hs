@@ -41,12 +41,12 @@ inCollisionP _ _ _ _ _ _ _ _ _ = False
 
 --collisionChecker moet kijken naar speler & enemy, speler & enemy bullets, speler bullets & enemies
 collisionChecker :: GameState -> GameState
-collisionChecker gs@GameState{infoToShow = ShowFinal c sp@Player{health=h,immuCou=ic} bs es ebs sc, elapsedTime = tt} 
+collisionChecker gs@GameState{infoToShow = ShowFinal c sp@Player{health=h,immuCou=ic} bs es  sc, elapsedTime = tt} 
     | fst check1 == True && ic == 0 && h == 1 
       = GameState (ShowDead (updatePlayer 'h' sp) (snd check1) (updateScore sc (-10)) "_") tt
     | fst check1 == True && ic == 0 = GameState (ShowFinal c (updatePlayer 'h' sp) 
-      bs (snd check1) ebs (updateScore sc (-10)) ) tt
-    | fst check1 == True = GameState (ShowFinal c sp bs (snd check1) ebs (updateScore sc (-10))) tt
+      bs (snd check1)  (updateScore sc (-10)) ) tt
+    | fst check1 == True = GameState (ShowFinal c sp bs (snd check1) (updateScore sc (-10))) tt
     | otherwise = gs
        where check1 = collisionCheckEs es sp []
 collisionChecker gs@GameState{infoToShow=Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2, elapsedTime = tt}
@@ -97,8 +97,8 @@ collisionBulEnem1v1 GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2
 --Bekijkt de collisions tussen de speler's bullets en de enemies. Hij past de bullets, enemies en score aan
 --o.b.v. of er enemies gedood zijn.
 collBulEnem :: GameState -> GameState
-collBulEnem GameState{infoToShow = ShowFinal c sp bs es ebs sc, elapsedTime = tt} =
-  GameState (ShowFinal c sp (fst2 check) (snd2 check) ebs (sc + thrd check)) tt
+collBulEnem GameState{infoToShow = ShowFinal c sp bs es sc, elapsedTime = tt} =
+  GameState (ShowFinal c sp (fst2 check) (snd2 check) (sc + thrd check)) tt
     where check = collisionBullets2 bs es [] 0 (-1)
 collBulEnem GameState{infoToShow = ShowLevel c sp bs es ebs sc t l, elapsedTime = tt} =
   GameState (ShowLevel c sp (fst2 check) (snd2 check) ebs (sc + thrd check) t l) tt

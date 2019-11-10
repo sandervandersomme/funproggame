@@ -30,15 +30,17 @@ step secs gstate
     let scores = updateHighScores (round huidigeScore) $ scoreString scoreText
     let tekst = scoresToString scores
     return $ updateGameDead tekst gstate
+  | elapsedTime gstate + secs > nOSECSBETWEENCYCLES && gstateIsShown gstate
+  =
+  do
+    let tekst = getHighScoreText gstate
+    writeFile "highscore.txt" tekst
+    return (GameState (ShowHighScores ["", ""] tekst) 0)
   | elapsedTime gstate + secs > nOSECSBETWEENCYCLES && gstateIsShowhighscores gstate
   = 
   do
-    let tekst = getHighScoreText gstate
-    -- if tekst /= "" (test <- writeFile "highscore.txt" tekst)
-    _ <- schrijfTekst tekst
-    --contents <- readFile "highscore.txt"
-    --let woorden = words $ contents
-    --let woorden = ["werkt nog niet"]
+    contents <- readFile "highscore.txt"
+    let woorden = words $ contents
     return $ GameState (ShowHighScores woorden "_") 0
   | elapsedTime gstate + secs > nOSECSBETWEENCYCLES && gstateIsShowLevel gstate
   =
@@ -76,12 +78,10 @@ schrijfTekst s gs | s == ""
 
 
 updateGameState :: Float -> GameState -> GameState
-updateGameState ran gs@GameState{infoToShow = ShowFinal _ _ _ _ _ _} 
+updateGameState ran gs@GameState{infoToShow = ShowFinal _ _ _ _ _ } 
   = collBulEnem $ collisionChecker $ newGsT ran gs
 updateGameState ran gs@GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2, elapsedTime=tt}
-  -- | ran <= (eSpPr/3) = collisionBulEnem1v1 $ collisionChecker $ addEnemy (ran/(eSpPr/3)) gs
   | ran <= (eSpPr/3) =  collisionChecker2 $ collisionBulEnem1v1 $ collisionChecker $ addEnemy (ran/(eSpPr/3)) gs
-  -- | otherwise = collisionBulEnem1v1 $ collisionChecker $ updateGameState1v1 gs
   | otherwise = collisionChecker2 $ collisionBulEnem1v1 $ collisionChecker $ updateGameState1v1 gs
 updateGameState ran gs@GameState{infoToShow = ShowLevel c1 sp bs es ebs sc t l}
   = collBulEnem $ collisionChecker $ GameState (ShowLevel c1 (updatePlayer c1 sp) 
@@ -151,10 +151,10 @@ randomY spPr ran enemH = (((fromIntegral screenHeight)/2 - enemH/2) / (spPr/2)) 
 --Zorgt ervoor dat de bullets bewegen, dat de enemies bewegen.
 --En bij ShowFinal zorgt het ervoor dat ook de speler blijft bewegen als w of s ingedrukt is.
 newGsT :: Float -> GameState -> GameState
-newGsT randN GameState{infoToShow = ShowFinal c sp bs es ebs sc}
+newGsT randN GameState{infoToShow = ShowFinal c sp bs es sc}
   | randN <= eSpPr = GameState (ShowFinal c (updatePlayer c sp) (updateBullets bs) 
-    ((updateEnemies es) ++ [(Enemy 3 (eSpX, (berekenRandomY randN)) 1 (e1H,e1W) 1 (getColour 1) 0)]) ebs sc) 0
-  | otherwise      = GameState (ShowFinal c (updatePlayer c sp) (updateBullets bs) (updateEnemies es) ebs sc) 0
+    ((updateEnemies es) ++ [(Enemy 3 (eSpX, (berekenRandomY randN)) 1 (e1H,e1W) 1 (getColour 1) 0)]) sc) 0
+  | otherwise      = GameState (ShowFinal c (updatePlayer c sp) (updateBullets bs) (updateEnemies es) sc) 0
 newGsT randN GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2}
   = GameState (Show1v1 c1 (updatePlayer c1 sp1) c2 (updatePlayer c2 sp2) (updateBullets bs1) 
     (updateBullets2 bs2) (updateEnemies es1) (updateEnemies es2)) 0
@@ -208,10 +208,10 @@ updateInfoToShow '1' GameState{infoToShow=ShowMenu c i}
   | otherwise = GameState (Show1v1 '_' player1 '_' player2 [] [] [] []) 0
 updateInfoToShow '0' GameState{infoToShow=ShowMenu c i} 
   = GameState (ShowLevel '_' (Player 5 3 (spX, spY) 0 0) [] [] [] 0 0 level0 ) 0 
-updateInfoToShow 'h' gs@GameState{infoToShow=ShowDead _ _ sc s} = GameState (ShowHighScores ["",""] s) 0
+updateInfoToShow 'h' gs@GameState{infoToShow=ShowDead _ _ sc s} = GameState (ShowNothing s) 0
 updateInfoToShow 'h' gs = GameState (ShowHighScores ["a", "b"] "_") 0
 updateInfoToShow 'u' GameState{infoToShow=ShowMenu _ _} 
-  = GameState (ShowFinal '_' (Player 5 3 (spX, spY) 0 0) [] [] [] 0) 0
+  = GameState (ShowFinal '_' (Player 5 3 (spX, spY) 0 0) [] []  0) 0
 updateInfoToShow 'p' gs@GameState{infoToShow=ShowPause x y} = GameState x y
 updateInfoToShow 'p' gs@GameState{infoToShow=i, elapsedTime=tt} = GameState (ShowPause i tt) 0
 updateInfoToShow _ gs = gs
@@ -223,8 +223,8 @@ unpressKey 'v' GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2, ela
   = GameState (Show1v1 c1 sp1 (verwijderChar 's' c2) sp2 bs1 bs2 es1 es2) tt
 unpressKey c GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2, elapsedTime = tt}
   = GameState (Show1v1 (verwijderChar c c1) sp1 c2 sp2 bs1 bs2 es1 es2) tt
-unpressKey c GameState{infoToShow = ShowFinal c1 speler bs es ebs sc, elapsedTime = tt}
-  = GameState (ShowFinal (verwijderChar c c1) speler bs es ebs sc) tt
+unpressKey c GameState{infoToShow = ShowFinal c1 speler bs es  sc, elapsedTime = tt}
+  = GameState (ShowFinal (verwijderChar c c1) speler bs es  sc) tt
 unpressKey c GameState{infoToShow = ShowLevel c1 speler bs es ebs sc t l, elapsedTime = tt}
   = GameState (ShowLevel (verwijderChar c c1) speler bs es ebs sc t l) tt
 unpressKey c gs = gs
@@ -233,8 +233,8 @@ playerMoved :: Int -> Char -> GameState -> GameState
 playerMoved sp c gs@GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2} 
   = press1v1 c 1 gs
 playerMoved _ cPr GameState{infoToShow = ShowFinal c sp@Player{speed=s, health=h, position=(x, y), 
-  bullCou=bc, immuCou=ic} bs es ebs sc, elapsedTime=tt} 
-  = GameState (ShowFinal (updateChar cPr c) sp bs es ebs sc) tt 
+  bullCou=bc, immuCou=ic} bs es sc, elapsedTime=tt} 
+  = GameState (ShowFinal (updateChar cPr c) sp bs es sc) tt 
 playerMoved _ cPr GameState{infoToShow = ShowLevel c sp@Player{speed=s, health=h, position=(x, y), 
   bullCou=bc, immuCou=ic} bs es ebs sc t l, elapsedTime=tt} 
   = GameState (ShowLevel (updateChar cPr c) sp bs es ebs sc t l) tt 
@@ -243,9 +243,9 @@ playerMoved _ _ gs = gs
 bulletFired :: GameState -> GameState
 bulletFired gs@GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2} = bullet1v1 1 gs
 bulletFired gs@GameState{infoToShow = ShowFinal c Player{speed=s, health=h, position=(x, y), 
-  bullCou=bc, immuCou=ic} bs es ebs sc, elapsedTime = tt}
+  bullCou=bc, immuCou=ic} bs es sc, elapsedTime = tt}
     | bc < 1   = GameState (ShowFinal c (Player s h (x, y) bulletCounter ic) 
-      (bs ++ [(Bullet bullS (x + 10, y) blue)]) es ebs sc) tt
+      (bs ++ [(Bullet bullS (x + 10, y) blue)]) es sc) tt
     | otherwise = gs
 bulletFired gs@GameState{infoToShow = ShowLevel c sp@Player{speed=s, health=h, position=(x, y), 
   bullCou=bc, immuCou=ic} bs es ebs sc t l, elapsedTime=tt} 

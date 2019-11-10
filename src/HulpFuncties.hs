@@ -27,6 +27,7 @@ scoresToString (sc:scs) = (show sc) ++ "\n" ++ (scoresToString scs)
 
 getHighScoreText :: GameState -> String
 getHighScoreText gs@GameState{infoToShow=ShowHighScores _ s} = s
+getHighScoreText gs@GameState{infoToShow=ShowNothing s} = s
 getHighScoreText gs = ""
 
 updateScore :: Float -> Float -> Float
@@ -45,6 +46,10 @@ gstateIsShowhighscores gs = False
 gstateIsShowdead :: GameState -> Bool
 gstateIsShowdead gs@GameState{infoToShow = ShowHighScores _ _ } = True
 gstateIsShowdead gs = False
+
+gstateIsShown :: GameState -> Bool
+gstateIsShown gs@GameState{infoToShow = ShowNothing _ } = True
+gstateIsShown gs = False
 
 getScore :: GameState -> IO Float
 getScore GameState{infoToShow=ShowDead _ _ c _} = return c
