@@ -76,7 +76,7 @@ schrijfTekst s gs | s == ""
     do test <- writeFile "highscore.txt" s
        return ()
 
-
+--Alls wordt geupdate, zowel de locaties van speler, bullets en enemies als botsingen.
 updateGameState :: Float -> GameState -> GameState
 updateGameState ran gs@GameState{infoToShow = ShowFinal _ _ _ _ _ } 
   = collBulEnem $ collisionChecker $ newGsT ran gs
@@ -89,14 +89,14 @@ updateGameState ran gs@GameState{infoToShow = ShowLevel c1 sp bs es ebs sc t l}
 updateGameState ran gs = collBulEnem $ collisionChecker $ newGsT ran gs
  -- = collBulEnem $ collisionChecker $ 
 
-
+--Update de gamestate voor 1v1 mode
 updateGameState1v1 :: GameState -> GameState
 updateGameState1v1 gs@GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2, elapsedTime=tt}
   = GameState (Show1v1 c1 (updatePlayer c1 sp1) c2 (updatePlayer c2 sp2) (updateBullets bs1) 
     (updateBullets2 bs2) (updateEnemies es1) (updateEnemies2 es2)) tt
 updateGameState1v1 gs = gs
 
- --(t + (nOSECSBETWEENCYCLES*2))
+--
 updateGSLevel :: [Float] -> GameState -> GameState
 updateGSLevel rands gs@GameState{infoToShow=ShowLevel c1 sp bs es ebs sc t l@Level{idL=idL1,paren=(p:ps)}}   
   | t >= 100
@@ -120,7 +120,6 @@ spawnEnemies x (r:rs) (l, i, e@Enemy{speedE=s,healthE=h,sizeE=(eH,eW),typeE=t,co
     : spawnEnemies x rs (l, (i-1), e)
 spawnEnemies _ _ _ = []
 
---ran / eSpPr
 addEnemy :: Float -> GameState -> GameState
 addEnemy ran gs@GameState{infoToShow = Show1v1 c1 sp1 c2 sp2 bs1 bs2 es1 es2, elapsedTime=tt}
   | ran < e2SpPr/2 = GameState (Show1v1 c1 (updatePlayer c1 sp1) c2 (updatePlayer c2 sp2) (updateBullets bs1) 
